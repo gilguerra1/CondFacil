@@ -97,7 +97,7 @@ public class BlockServices {
 
     @Transactional
     public void delete(UUID uuid){
-        log.info("Deleting block with UUID: {}");
+        log.info("Deleting block with UUID: {}", uuid);
 
         Block block = repository.findByBlockUuid(uuid)
                 .orElseThrow(() -> new RuntimeException("Block not found"));
