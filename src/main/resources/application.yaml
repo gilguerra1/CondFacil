@@ -11,7 +11,7 @@ spring:
   # para ver se o Flyway acorda e cria as tabelas.
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:

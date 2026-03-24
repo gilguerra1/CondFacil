@@ -30,7 +30,7 @@ public class UnitController {
     {
         UnitResponseDTO responseDTO = service.create(requestDTO);
 
-        URI uri = uriComponentsBuilder.path("/unit/{unitUuid").buildAndExpand(responseDTO.uuid()).toUri();
+        URI uri = uriComponentsBuilder.path("/unit/{uuid}").buildAndExpand(responseDTO.uuid()).toUri();
 
         return ResponseEntity.created(uri).body(responseDTO);
     }
@@ -66,6 +66,11 @@ public class UnitController {
 
         service.delete(uuid);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/block/{uuid}")
+    public ResponseEntity<List<UnitResponseDTO>> findByBlockUuid(@PathVariable UUID uuid){
+        return ResponseEntity.ok(service.findUnitsByBlockUuid(uuid));
     }
 
 }

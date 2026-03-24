@@ -158,10 +158,16 @@ public class UnitService {
 
         this.findByUuid(uuid);
 
+        Unit currentUnit = repository.findByUnitUuid(uuid)
+                .orElseThrow(() -> new RuntimeException("Unit not found"));
+
         StringBuilder sql = new StringBuilder("UPDATE unit SET ");
         List<Object> params = new ArrayList<>();
 
-        if (dto.number() != null){
+        if (dto.number() != null && !dto.number().equals(currentUnit.getNumber())) {
+            if (repository.existsByNumberAndBlockId(dto.number(), currentUnit.getBlock().getId())) {
+                throw new IllegalArgumentException("Unit " + dto.number() + " already exists at this block.");
+            }
             sql.append("number = ?, ");
             params.add(dto.number());
         }
