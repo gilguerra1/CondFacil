@@ -1,2 +1,2 @@
-ALTER TABLE apartment_blcok
+ALTER TABLE apartament_blcok
 RENAME TO block;

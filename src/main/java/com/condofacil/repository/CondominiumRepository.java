@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface CondominiumRepository extends JpaRepository<Condominium, Long>,
-        JpaSpecificationExecutor<Condominium>{
+public interface CondominiumRepository extends JpaRepository<Condominium, Long>, JpaSpecificationExecutor<Condominium>{
+
     Optional<Condominium> findByCondominiumUuid(UUID uuid);
 
     List<Condominium> findByNameContainingIgnoreCase(String name);
