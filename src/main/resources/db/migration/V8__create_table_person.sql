@@ -1,0 +1,9 @@
+CREATE TABLE person (
+    id BIGSERIAL PRIMARY KEY,
+    person_uuid UUID NOT NULL UNIQUE,
+    full_name VARCHAR(255) NOT NULL,
+    tax_id VARCHAR(14) UNIQUE,
+    phone VARCHAR(20),
+    email VARCHAR(255) UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

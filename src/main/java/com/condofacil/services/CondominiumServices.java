@@ -27,6 +27,10 @@ public class CondominiumServices {
     public CondominiumResponseDTO create(CondominiumRequestDTO dto) {
         log.info("Creating a new condominium: {}", dto.name());
 
+        if (repository.existsByTaxId(dto.taxId())) {
+            throw new RuntimeException("Condominium already registered with this tax id");
+        }
+
         UUID newUUID = UUID.randomUUID();
 
         String sql = """
