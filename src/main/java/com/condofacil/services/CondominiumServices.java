@@ -8,6 +8,7 @@ import com.condofacil.repository.CondominiumRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,21 +42,26 @@ public class CondominiumServices {
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
-        jdbcTemplate.update(
-                sql,
-                newUUID,
-                dto.name(),
-                dto.legalName(),
-                dto.taxId(),
-                dto.address(),
-                dto.number(),
-                dto.neighborhood(),
-                dto.city(),
-                dto.state(),
-                dto.zipCode(),
-                dto.conciergePhone(),
-                dto.managementEmail()
-        );
+        GeneratedKeyHolder keyHolder =  new GeneratedKeyHolder();
+
+        jdbcTemplate.update(connection -> {
+            var ps = connection.prepareStatement(sql, new String[]{"id"}); // Indica que queremos o campo 'id'
+            ps.setObject(1, newUUID);
+            ps.setString(2, dto.name());
+            ps.setString(3, dto.legalName());
+            ps.setString(4, dto.taxId());
+            ps.setString(5, dto.address());
+            ps.setString(6, dto.number());
+            ps.setString(7, dto.neighborhood());
+            ps.setString(8, dto.city());
+            ps.setString(9, dto.state());
+            ps.setString(10, dto.zipCode());
+            ps.setString(11, dto.conciergePhone());
+            ps.setString(12, dto.managementEmail());
+            return ps;
+        }, keyHolder);
+
+        Long generatedId = keyHolder.getKey().longValue();
 
         Condominium entity = repository.findByCondominiumUuid(newUUID)
                         .orElseThrow(() -> new RuntimeException("Error retrieving saved condominium"));

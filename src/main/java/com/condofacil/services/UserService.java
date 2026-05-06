@@ -25,7 +25,7 @@ public class UserService {
         UUID userUuid = UUID.randomUUID();
 
         String sqlPerson = """
-                INSERT INTO person (person_uuid, full_name, tax_id, email, phone, create_at)
+                INSERT INTO person (person_uuid, full_name, tax_id, email, phone, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """;
 
