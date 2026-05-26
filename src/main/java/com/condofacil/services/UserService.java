@@ -22,14 +22,13 @@ public class UserService {
     public void  create(UserRegistrationDTO dto){
 
         UUID personUuid = UUID.randomUUID();
-        UUID userUuid = UUID.randomUUID();
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
         String sqlPerson = """
                 INSERT INTO person (person_uuid, full_name, tax_id, email, phone, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)
                 """;
 
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
             var ps = connection.prepareStatement(sqlPerson, new  String[]{"id"});
@@ -51,11 +50,12 @@ public class UserService {
 
         jdbcTemplate.update(
                 sqlUser,
-                userUuid,
                 dto.login(),
                 passwordEncoder.encode(dto.password()),
                 dto.roleType().name(),
                 personId
         );
     }
+
+
 }

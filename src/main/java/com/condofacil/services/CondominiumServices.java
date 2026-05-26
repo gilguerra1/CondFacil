@@ -61,12 +61,16 @@ public class CondominiumServices {
             return ps;
         }, keyHolder);
 
-        Long generatedId = keyHolder.getKey().longValue();
-
-        Condominium entity = repository.findByCondominiumUuid(newUUID)
-                        .orElseThrow(() -> new RuntimeException("Error retrieving saved condominium"));
-
-        return CondominiumResponseDTO.fromEntity(entity);
+        return new CondominiumResponseDTO(
+                newUUID,
+                dto.name(),
+                dto.legalName(),
+                dto.taxId(),
+                dto.city(),
+                dto.state(),
+                dto.address(),
+                dto.managementEmail()
+        );
     }
 
     @Transactional(readOnly = true)

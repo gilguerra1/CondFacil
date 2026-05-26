@@ -11,6 +11,7 @@ import com.condofacil.repository.UnitRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,23 +38,25 @@ public class UnitService {
         if (repository.existsByNumberAndBlockId(dto.number(), block.getId())){
             throw  new IllegalArgumentException("The unit " + dto.number() + "already exist in this block");
         }
-        UUID newUUID = UUID.randomUUID();
+        UUID unitUUID = UUID.randomUUID();
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
         String sql = """
                 INSERT INTO unit(
                 unit_uuid, number, floor, type, block_id
                 ) VALUES (?, ?, ?, ?, ?)
                 """;
-        jdbcTemplate.update(
-                sql,
-                newUUID,
-                dto.number(),
-                dto.floor(),
-                dto.type().toString(),
-                block.getId()
-        );
+        jdbcTemplate.update(connection -> {
+            var ps  = connection.prepareStatement(sql, new String[]{"id"});
+            ps.setObject(1, unitUUID);
+            ps.setString(2, dto.number());
+            ps.setInt(3, dto.floor());
+            ps.setObject(4, dto.type().toString());
+            ps.setObject(5, block.getId());
+            return ps;
+        }, keyHolder);
 
-        Unit entity = repository.findByUnitUuid(newUUID)
+        Unit entity = repository.findByUnitUuid(unitUUID)
                 .orElseThrow(() -> new RuntimeException("Erro retrieving saved unit"));
 
         return UnitResponseDTO.fromEntity(entity);

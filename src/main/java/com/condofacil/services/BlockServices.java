@@ -9,6 +9,7 @@ import com.condofacil.repository.CondominiumRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +33,8 @@ public class BlockServices {
         Condominium condominium = condominiumRepository.findByCondominiumUuid(dto.condominiumUuid())
                 .orElseThrow(() -> new IllegalArgumentException("Condominium not found with UUID: " + dto.condominiumUuid()));
 
-        UUID newUUID = UUID.randomUUID();
+        UUID blockUuid = UUID.randomUUID();
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
         String sql = """
                     INSERT INTO block(
@@ -40,18 +42,19 @@ public class BlockServices {
                     ) VALUES (?, ?, ?)
                 """;
 
-        jdbcTemplate.update(
-                sql,
-                newUUID,
+        jdbcTemplate.update(con -> {
+            var ps = con.prepareStatement(sql, new String[]{"id"});
+            ps.setObject(1, blockUuid);
+            ps.setString(2, dto.name());
+            ps.setObject(3, dto.condominiumUuid());
+            return ps;
+        }, keyHolder);
+
+        return new BlockResponseDTO(
+                blockUuid,
                 dto.name(),
-                condominium.getId()
+                condominium.getName()
         );
-
-        Block entity = repository.findByBlockUuid(newUUID)
-                .orElseThrow(() -> new RuntimeException("Erro retrieving saved block"));
-
-
-        return BlockResponseDTO.fromEntity(entity);
     }
 
     @Transactional(readOnly = true)
