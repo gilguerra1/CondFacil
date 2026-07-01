@@ -3,7 +3,7 @@ package com.condofacil.dto;
 import com.condofacil.model.RoleType;
 import jakarta.validation.constraints.*;
 
-public record UserRegistrationDTO(
+public record UserRequestDTO(
         @NotBlank String fullName,
         @NotBlank @Pattern(regexp = "\\d{11}") String taxId,
         @Email String email,

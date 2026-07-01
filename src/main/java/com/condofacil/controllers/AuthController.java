@@ -1,6 +1,6 @@
 package com.condofacil.controllers;
 
-import com.condofacil.dto.UserRegistrationDTO;
+import com.condofacil.dto.UserRequestDTO;
 import com.condofacil.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ public class AuthController {
     private UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody @Valid UserRegistrationDTO dto){
+    public ResponseEntity register(@RequestBody @Valid UserRequestDTO dto){
         userService.create(dto);
         return ResponseEntity.ok().build();
     }

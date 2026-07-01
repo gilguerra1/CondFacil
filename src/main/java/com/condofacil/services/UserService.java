@@ -1,7 +1,10 @@
 package com.condofacil.services;
 
-import com.condofacil.dto.UserRegistrationDTO;
+import com.condofacil.dto.UserRequestDTO;
+import com.condofacil.dto.UserResponseDTO;
+import com.condofacil.model.RoleType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -9,8 +12,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -19,9 +24,10 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public void  create(UserRegistrationDTO dto){
+    public UserResponseDTO  create(UserRequestDTO dto){
 
         UUID personUuid = UUID.randomUUID();
+        UUID userUuid = UUID.randomUUID();
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
         String sqlPerson = """
@@ -50,12 +56,52 @@ public class UserService {
 
         jdbcTemplate.update(
                 sqlUser,
+                userUuid,
                 dto.login(),
                 passwordEncoder.encode(dto.password()),
                 dto.roleType().name(),
                 personId
         );
+
+        return new UserResponseDTO(
+                userUuid,
+                dto.login(),
+                dto.roleType(),
+                personUuid,
+                dto.fullName(),
+                dto.email(),
+                dto.phone()
+        );
     }
 
+    @Transactional(readOnly = true)
+    public List<UserResponseDTO> findAll() {
+        log.info("Fetching all users from database");
 
+        // Query utilizando INNER JOIN para trazer os dados da conta e os dados pessoais juntos
+        String sql = """
+                SELECT 
+                    u.user_uuid,
+                    u.login,
+                    u.role,
+                    p.person_uuid,
+                    p.full_name,
+                    p.email,
+                    p.phone
+                FROM users u
+                INNER JOIN person p ON u.person_id = p.id
+                """;
+
+        // O RowMapper transforma cada linha do ResultSet diretamente no teu UserResponseDTO
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new UserResponseDTO(
+                rs.getObject("user_uuid", UUID.class),
+                rs.getString("login"),
+                RoleType.valueOf(rs.getString("role")), // Converte a String do banco de volta para o Enum
+                rs.getObject("person_uuid", UUID.class),
+                rs.getString("full_name"),
+                rs.getString("email"),
+                rs.getString("phone")
+        ));
+
+    }
 }
