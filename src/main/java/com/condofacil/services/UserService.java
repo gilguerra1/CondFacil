@@ -78,7 +78,6 @@ public class UserService {
     public List<UserResponseDTO> findAll() {
         log.info("Fetching all users from database");
 
-        // Query utilizando INNER JOIN para trazer os dados da conta e os dados pessoais juntos
         String sql = """
                 SELECT 
                     u.user_uuid,
@@ -92,11 +91,10 @@ public class UserService {
                 INNER JOIN person p ON u.person_id = p.id
                 """;
 
-        // O RowMapper transforma cada linha do ResultSet diretamente no teu UserResponseDTO
         return jdbcTemplate.query(sql, (rs, rowNum) -> new UserResponseDTO(
                 rs.getObject("user_uuid", UUID.class),
                 rs.getString("login"),
-                RoleType.valueOf(rs.getString("role")), // Converte a String do banco de volta para o Enum
+                RoleType.valueOf(rs.getString("role")),
                 rs.getObject("person_uuid", UUID.class),
                 rs.getString("full_name"),
                 rs.getString("email"),
