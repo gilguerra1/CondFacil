@@ -2,9 +2,11 @@ package com.condofacil.services;
 
 import com.condofacil.dto.UserRequestDTO;
 import com.condofacil.dto.UserResponseDTO;
+import com.condofacil.dto.UserUpdateDTO;
 import com.condofacil.model.RoleType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -101,5 +104,95 @@ public class UserService {
                 rs.getString("phone")
         ));
 
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponseDTO findByUuid(UUID uuid){
+
+        log.info("Searching for user with UUID {}", uuid);
+
+        String sql = """
+               SELECT 
+                    u.user_uuid,
+                    u.login,
+                    u.role,
+                    p.person_uuid,
+                    p.full_name,
+                    p.email,
+                    p.phone
+                FROM users u
+                INNER JOIN person p ON u.person_id = p.id
+                WHERE u.user_uuid = ?
+                """;
+
+        try {
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> new UserResponseDTO(
+                    rs.getObject("user_uuid", UUID.class),
+                    rs.getString("login"),
+                    RoleType.valueOf(rs.getString("role")),
+                    rs.getObject("person_uuid", UUID.class),
+                    rs.getString("full_name"),
+                    rs.getString("email"),
+                    rs.getString("phone")
+            ), uuid);
+        } catch (EmptyResultDataAccessException e) {
+            throw new RuntimeException("User not found with UUID: " + uuid);
+        }
+    }
+
+    @Transactional
+    public void delete(UUID uuid){
+
+        log.info("Deleting user with UUID: {}", uuid);
+
+        UserResponseDTO userResponseDTO = findByUuid(uuid);
+
+        String sql = "DELETE FROM user WHERE user_uuid = ?";
+
+        jdbcTemplate.update(sql, userResponseDTO.userUuid());
+
+        log.info("Succesfully deleted user and person profile for UUID: {}", uuid);
+
+    }
+
+    @Transactional
+    public UserResponseDTO update(UUID uuid, UserUpdateDTO dto){
+
+        log.info("Updating user with UUID: {}", uuid);
+
+        UserResponseDTO currentUser = findByUuid(uuid);
+
+        StringBuilder sql = new StringBuilder("UPDATE user SET ");
+        List<Object> params = new ArrayList<>();
+
+        if (dto.login() != null){
+
+            sql.append("login = ?, ");
+            params.add(dto.login());
+
+        }
+
+        if (dto.password() != null){
+
+            sql.append("password = ?, ");
+            params.add(dto.password());
+
+        }
+
+        if (dto.roleType() != null){
+
+            sql.append("roleType = ?, ");
+            params.add(dto.roleType().name());
+
+        }
+
+        sql.setLength(sql.length() - 2);
+
+        sql.append(" WHERE user_uuid = ?");
+        params.add(uuid);
+
+        jdbcTemplate.update(sql.toString(), params.toArray());
+
+        return findByUuid(uuid);
     }
 }

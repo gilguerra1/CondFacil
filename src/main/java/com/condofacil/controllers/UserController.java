@@ -1,8 +1,8 @@
 package com.condofacil.controllers;
 
-import com.condofacil.dto.UnitResponseDTO;
 import com.condofacil.dto.UserRequestDTO;
 import com.condofacil.dto.UserResponseDTO;
+import com.condofacil.dto.UserUpdateDTO;
 import com.condofacil.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/user")
@@ -39,5 +40,33 @@ public class UserController {
         List<UserResponseDTO> result = service.findAll();
 
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/{uuid}")
+    public ResponseEntity<UserResponseDTO> findByUuid(@PathVariable UUID uuid){
+
+        UserResponseDTO responseDTO = service.findByUuid(uuid);
+
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @DeleteMapping("/{uuid}")
+    public ResponseEntity<Void> delete(@PathVariable UUID uuid){
+
+        service.delete(uuid);
+
+        return ResponseEntity.noContent().build();
+
+    }
+
+    @PutMapping("/{uuid}")
+    public ResponseEntity<UserResponseDTO> update(
+            @PathVariable UUID uuid,
+            @RequestBody @Valid UserUpdateDTO dto
+            ){
+
+        UserResponseDTO responseDTO = service.update(uuid, dto);
+
+        return ResponseEntity.ok(responseDTO);
     }
 }

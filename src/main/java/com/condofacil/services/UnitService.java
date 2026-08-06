@@ -43,7 +43,7 @@ public class UnitService {
 
         String sql = """
                 INSERT INTO unit(
-                unit_uuid, number, floor, type, block_id
+                unit_uuid, number, floor, roleType, block_id
                 ) VALUES (?, ?, ?, ?, ?)
                 """;
         jdbcTemplate.update(connection -> {
@@ -72,7 +72,7 @@ public class UnitService {
                     u.unit_uuid,
                     u.number,
                     u.floor,
-                    u.type,
+                    u.roleType,
                     b.name AS block_name,
                     b.block_uuid AS block_uuid,
                     c.name AS condominium_name
@@ -103,7 +103,7 @@ public class UnitService {
                     u.unit_uuid,
                     u.number,
                     u.floor,
-                    u.type,
+                    u.roleType,
                     b.name AS block_name,
                     b.block_uuid AS block_uuid,
                     c.name AS condominium_name
@@ -133,7 +133,7 @@ public class UnitService {
                     u.unit_uuid,
                     u.number,
                     u.floor,
-                    u.type,
+                    u.roleType,
                     b.name AS block_name,
                     b.block_uuid AS block_uuid,
                     c.name AS condominium_name
@@ -159,8 +159,6 @@ public class UnitService {
 
         log.info("Updating unit with UUID: {}", uuid);
 
-        this.findByUuid(uuid);
-
         Unit currentUnit = repository.findByUnitUuid(uuid)
                 .orElseThrow(() -> new RuntimeException("Unit not found"));
 
@@ -181,12 +179,12 @@ public class UnitService {
         }
 
         if (dto.type() != null){
-            sql.append("type = ?, ");
+            sql.append("roleType = ?, ");
             params.add(dto.type().name());
         }
 
         if (params.isEmpty()){
-            return findByUuid(uuid);
+            return UnitResponseDTO.fromEntity(currentUnit);
         }
         sql.setLength(sql.length() - 2);
 
@@ -196,7 +194,6 @@ public class UnitService {
         jdbcTemplate.update(sql.toString(), params.toArray());
 
         return findByUuid(uuid);
-
     }
 
     @Transactional
